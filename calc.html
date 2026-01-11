@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator</title>
+<style>
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.35);
+  --btn-bg: rgba(255, 255, 255, 0.5);
+  --btn-text: #000;
+  --accent: #222;
+}
+
+body.dark {
+  --glass-bg: rgba(0, 0, 0, 0.45);
+  --btn-bg: rgba(255, 255, 255, 0.15);
+  --btn-text: #fff;
+  --accent: #fff;
+}
+
+
+body {
+  margin: 0;
+  height: 100vh;
+  background-image: url("c.jpg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Segoe UI", sans-serif;
+}
+
+
+.calculator {
+  width: 350px;
+  padding: 20px;
+  border-radius: 22px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.35);
+  position: relative;
+  z-index: 1;
+}
+
+
+.header {
+  display: flex;
+  align-items: center;
+  color: var(--btn-text);
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.icon {
+  font-size: 22px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/*56+4*/
+.expression {
+  text-align: right;
+  font-size: 14px;
+  opacity: 0.8;
+  min-height: 18px;
+  color: var(--btn-text);
+}
+
+/*output of the operation*/
+
+.display {
+  width: 100%;
+  height: 55px;
+  font-size: 26px;
+  text-align: right;
+  border: none;
+  background: transparent;
+  color: var(--btn-text);
+  margin-bottom: 15px;
+}
+
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+button {
+  height: 55px;
+  border-radius: 14px;
+  border: none;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+.equal {
+  grid-column: span 2;
+  background: var(--accent);
+  color: var(--glass-bg);
+}
+
+.clear {
+  background: #e53935;
+  color: #fff;
+}
+
+
+.history {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  padding: 15px;
+  display: none;
+  transform: translateX(-260px);
+  transition: transform 0.3s ease;
+  z-index: 20;
+ }
+
+.history.active {
+  display: block;
+}
+
+.history h3 {
+  text-align: center;
+  color: var(--btn-text);
+}
+
+.history p {
+  font-size: 14px;
+  color: var(--btn-text);
+}
+</style>
+</head>
+
+<body>
+
+<div class="calculator">
+
+  <div class="history" id="history">
+    <h3>HISTORY</h3>
+    <div id="historyList"></div>
+  </div>
+
+  <div class="header">
+    <span class="icon" id="menu">☰</span>
+    <div class="title">CALCULATOR</div>
+    <span class="icon" id="theme">🌙</span>
+  </div>
+
+  <div class="expression" id="expression"></div>
+  <input type="text" class="display" id="display" readonly>
+
+  <div class="buttons">
+    <button class="clear">C</button>
+    <button>⌫</button>
+    <button>%</button>
+    <button>/</button>
+
+    <button>7</button><button>8</button><button>9</button><button>*</button>
+    <button>4</button><button>5</button><button>6</button><button>-</button>
+    <button>1</button><button>2</button><button>3</button><button>+</button>
+
+    <button>0</button>
+    <button>00</button>
+    <button>.</button>
+    <button class="equal">=</button>
+  </div>
+</div>
+
+<script>
+const display = document.getElementById("display");
+const expressionEl = document.getElementById("expression");
+const buttons = document.querySelectorAll("button");
+const historyPanel = document.getElementById("history");
+const historyList = document.getElementById("historyList");
+const themeBtn = document.getElementById("theme");
+const menuBtn = document.getElementById("menu");
+
+let expression = "";
+
+
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => handleInput(btn.innerText));
+});
+
+function handleInput(val) {
+  if (val === "C") {
+    expression = "";
+    display.value = "";
+    expressionEl.innerText = "";
+    return;
+  }
+
+  if (val === "⌫") {
+    expression = expression.slice(0, -1);
+    display.value = expression;
+    return;
+  }
+
+  if (val === "=") {
+    calculate();
+    return;
+  }
+
+  expression += val;
+  display.value = expression;
+}
+
+function calculate() {
+  try {
+    let exp = expression.replace(/%/g, "/100");
+    let result = eval(exp);
+    expressionEl.innerText = expression + " =";
+    display.value = result;
+    addHistory(expression, result);
+    expression = result.toString();
+  } catch {
+    display.value = "Error";
+    expression = "";
+  }
+}
+
+function addHistory(exp, res) {
+  const p = document.createElement("p");
+  p.innerText = `${exp} = ${res}`;
+  historyList.prepend(p);
+}
+
+
+menuBtn.addEventListener("click", () => {
+  historyPanel.classList.toggle("active");
+});
+
+
+themeBtn.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  themeBtn.innerText = document.body.classList.contains("dark") ? "☀️" : "🌙";
+});
+</script>
+
+</body>
+</html>       
+
